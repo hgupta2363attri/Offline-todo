@@ -6,15 +6,22 @@
  */
 
 import { NewAppScreen } from '@react-native/new-app-screen';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+import TodoScreen from './src/screens/TodoScreen';
+import { TodoProvider } from './src/context/todoContext';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
-
+const queryClient = new QueryClient();
   return (
     <View style={styles.container}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <NewAppScreen templateFileName="App.tsx" />
+      <QueryClientProvider client={queryClient}>
+        <TodoProvider>
+        <TodoScreen />
+        </TodoProvider>
+      </QueryClientProvider>
+    
     </View>
   );
 }
