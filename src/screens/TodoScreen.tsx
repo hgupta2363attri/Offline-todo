@@ -110,7 +110,6 @@ const TodoScreen = () => {
     <View style={styles.container}>
       <Text style={styles.header}>To-Do List</Text>
 
-      {/* Tabs */}
       <View style={styles.tabsContainer}>
         <Text
           style={[styles.tab, selectedTab === 'pending' && styles.activeTab]}
@@ -126,7 +125,6 @@ const TodoScreen = () => {
         </Text>
       </View>
 
-      {/* Card-like Form */}
       <View style={styles.formCard}>
         <Controller
           control={control}
