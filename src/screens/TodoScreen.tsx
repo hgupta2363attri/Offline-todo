@@ -19,22 +19,34 @@ const todoFormSchema = z.object({
 });
 type TodoFormValues = z.infer<typeof todoFormSchema>;
 
+function mergeTodos(remote: Todo[], local: Todo[]): Todo[] {
+  const localMap = new Map(local.map(todo => [todo.id, todo]));
+  const remoteIds = new Set(remote.map(todo => todo.id));
+  console.log(localMap.entries(), remoteIds)
+  const merged = remote.map(remoteTodo => {
+    if (localMap.has(remoteTodo.id)) {
+      return localMap.get(remoteTodo.id)!;
+    }
+    return remoteTodo;
+  });
+  local.forEach(localTodo => {
+    if (!remoteIds.has(localTodo.id)) {
+      merged.push(localTodo);
+    }
+  });
+  return merged;
+}
+
 const TodoScreen = () => {
   const { todos, dispatch } = useContext(TodoContext);
   const [editTodoId, setEditTodoId] = useState<number | null>(null);
   const [selectedTab, setSelectedTab] = useState<'pending' | 'completed'>('pending');
-
   const { refetch, isFetching, data } = useQuery<Todo[], Error>({
     queryKey: ['todos'],
     queryFn: fetchTodos,
     enabled: false,
-    onSuccess: (data) => {
-        console.log(data)
-      dispatch({ type: 'SET_TODOS', payload: data });
-    },
   });
 
-  // Fetch the todos from the server for online
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
       if (state.isConnected) refetch();
@@ -44,9 +56,11 @@ const TodoScreen = () => {
 
   useEffect(() => {
     if (data) {
-      dispatch({ type: 'SET_TODOS', payload: data });
+        console.log(data,todos )
+      const merged = mergeTodos(data, todos);
+      dispatch({ type: 'SET_TODOS', payload: merged });
     }
-  }, [data, dispatch]);
+  }, [data]);
 
   // React Hook Form setup
   const {

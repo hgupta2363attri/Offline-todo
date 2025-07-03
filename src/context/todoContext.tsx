@@ -1,4 +1,4 @@
-import React, { createContext, useReducer, useEffect } from "react";
+import React, { createContext, useReducer, useEffect, useState } from "react";
 import { Todo } from "../schema";
 import { getData, storeData } from "../utils/storageUtils";
 
@@ -34,15 +34,35 @@ const todoReducer = (state: Todo[], action: Action) => {
 
 export const TodoProvider = ({ children }: { children: React.ReactNode }): JSX.Element => {
     const [todos, dispatch] = useReducer(todoReducer, []);
+    const [isInitialized, setIsInitialized] = useState(false);
     useEffect(() => {
         const fetchTodos = async () => {
-            const todos = await getData<Todo[]>('todos');
-            if (todos) {
-                dispatch({ type: 'SET_TODOS', payload: todos });
+            try {
+                const storedTodos = await getData<Todo[]>('todos');
+                if (storedTodos) {
+                    dispatch({ type: 'SET_TODOS', payload: storedTodos });
+                }
+            } catch (error) {
+                console.error('Error loading todos:', error);
+            } finally {
+                setIsInitialized(true);
             }
         };
         fetchTodos();
     }, []);
+    useEffect(() => {
+        const saveTodos = async () => {
+            try {
+                console.log("Saving todos to storage:", todos);
+                await storeData('todos', todos);
+            } catch (error) {
+                console.error('Error saving todos:', error);
+            }
+        };
+        if (isInitialized) {
+            saveTodos();
+        }
+    }, [todos, isInitialized]);
 
     return (
         <TodoContext.Provider value={{ todos, dispatch }}>
